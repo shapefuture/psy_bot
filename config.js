@@ -1,64 +1,69 @@
+require('dotenv').config();
+
+// Validate required environment variables
+const requiredEnvVars = ['TELEGRAM_BOT_TOKEN', 'OPENROUTER_API_KEY'];
+for (const envVar of requiredEnvVars) {
+    if (!process.env[envVar]) {
+        throw new Error(`Missing required environment variable: ${envVar}`);
+    }
+}
+
 module.exports = {
-    // API Configuration
-    openrouter: {
-        apiUrl: 'https://openrouter.ai/api/v1/chat/completions',
-        model: 'deepseek/deepseek-chat-v3-0324:free',
-        maxTokens: 4096,
-        timeout: 30000, // 30 seconds
+    // Bot configuration
+    bot: {
+        token: process.env.TELEGRAM_BOT_TOKEN,
+        commands: {
+            start: '/start',
+            help: '/help',
+            psy: '/psy'
+        }
     },
 
-    // Rate Limiting
-    rateLimit: {
-        requests: 5,    // requests per window
-        window: 60000,  // window in milliseconds (1 minute)
+    // API configuration
+    api: {
+        openrouter: {
+            key: process.env.OPENROUTER_API_KEY,
+            endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+            model: 'anthropic/claude-3-opus-20240229'
+        }
     },
 
-    // Server Configuration
+    // Server configuration
     server: {
-        port: process.env.PORT || 3000,
-        webhookPath: '/telegram-webhook',
+        port: process.env.PORT || 3000
+    },
+
+    // Rate limiting configuration
+    rateLimit: {
+        maxRequests: 10,
+        timeWindow: 60 * 1000 // 1 minute in milliseconds
+    },
+
+    // Query validation configuration
+    validation: {
+        minLength: 10,
+        maxLength: 1000,
+        spamPatterns: [
+            /^[A-Z\s!@#$%^&*()]+$/, // All caps with special characters
+            /(.)\1{4,}/, // Repeated characters
+            /^[!@#$%^&*()]+$/ // Only special characters
+        ]
     },
 
     // Messages
     messages: {
-        welcome: `Привет! Я PSY бот - ваш персональный психологический аналитик.
-    
-Используйте команду /psy и задайте свой вопрос, например:
-/psy Почему я боюсь успеха?
-/psy Как преодолеть прокрастинацию?
-
-Я проанализирую вашу ситуацию и предоставлю глубокий психологический анализ.`,
-        
-        help: `Доступные команды:
-/start - Начать работу с ботом
-/help - Показать это сообщение
-/psy [вопрос] - Получить психологический анализ
-
-Примеры вопросов:
-/psy Почему я откладываю важные дела?
-/psy Как справиться с тревогой?
-/psy Почему я не могу найти партнера?`,
-
+        welcome: 'Welcome to the Psychological Analysis Bot! Use /help to see available commands.',
+        help: `Available commands:
+/start - Start the bot
+/help - Show this help message
+/psy <query> - Get psychological analysis of your query`,
         errors: {
-            rateLimit: 'Вы достигли лимита запросов. Пожалуйста, подождите минуту перед следующим запросом.',
-            apiError: 'Произошла ошибка при обработке запроса. Пожалуйста, попробуйте позже.',
-            networkError: 'Проблема с подключением. Проверьте интернет и попробуйте снова.',
-            unknownError: 'Произошла непредвиденная ошибка. Пожалуйста, попробуйте позже.',
-            emptyQuery: 'Задайте вопрос, например: /psy Почему я боюсь?',
-            queryTooShort: 'Вопрос слишком короткий. Пожалуйста, задайте более подробный вопрос.',
-            queryTooLong: 'Вопрос слишком длинный. Пожалуйста, сделайте его короче.',
-            invalidFormat: 'Пожалуйста, задайте вопрос в нормальном формате.'
+            emptyQuery: 'Please provide a query after the /psy command.',
+            queryTooShort: 'Your query is too short. Please provide more details.',
+            queryTooLong: 'Your query is too long. Please keep it concise.',
+            invalidFormat: 'Your query contains invalid characters or patterns.',
+            rateLimit: 'You have reached the rate limit. Please wait a moment before trying again.',
+            apiError: 'An error occurred while processing your request. Please try again later.'
         }
-    },
-
-    // Validation
-    validation: {
-        minQueryLength: 3,
-        maxQueryLength: 500,
-        spamPatterns: [
-            /(.)\1{4,}/,  // Repeated characters
-            /[A-Z]{5,}/,  // All caps
-            /[!@#$%^&*]{3,}/  // Excessive special characters
-        ]
     }
 }; 
