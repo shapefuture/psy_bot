@@ -153,9 +153,22 @@ app.get('/health', (req, res) => {
 });
 
 // Use polling for development instead of webhooks
-log.info('Starting bot with polling...');
-bot.launch();
-log.info('Bot started with polling.');
+// log.info('Starting bot with polling...');
+// bot.launch();
+// log.info('Bot started with polling.');
+
+const PORT = process.env.PORT || 3000;
+const URL = process.env.RAILWAY_URL; // Railway provides this as RAILWAY_URL
+
+app.listen(PORT, () => {
+    log.info(`Server running on port ${PORT}`);
+    if (URL) { // Only set webhook if RAILWAY_URL is defined (in production)
+        bot.setWebHook(`${URL}/bot${process.env.TELEGRAM_BOT_TOKEN}`);
+        log.info(`Webhook set to ${URL}/bot${process.env.TELEGRAM_BOT_TOKEN}`);
+    } else {
+        log.warn('RAILWAY_URL is not defined. Running without webhook.');
+    }
+});
 
 // Handle process termination
 process.on('SIGINT', () => { // Use SIGINT for Ctrl+C in terminal

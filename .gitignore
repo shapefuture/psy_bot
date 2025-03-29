@@ -23,4 +23,7 @@ coverage/
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Build artifacts / Installers
+*.pkg
