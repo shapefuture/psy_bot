@@ -1,0 +1,26 @@
+# Git files
+.git
+.gitignore
+
+# Node modules (these will be installed inside the container)
+node_modules
+
+# Environment files (secrets should be passed via flyctl secrets)
+.env*
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+tests/
+coverage/
+jest.config.js
+
+# Docker files
+Dockerfile
+.dockerignore

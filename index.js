@@ -158,15 +158,23 @@ app.get('/health', (req, res) => {
 // log.info('Bot started with polling.');
 
 const PORT = process.env.PORT || 3000;
-const URL = process.env.RAILWAY_URL; // Railway provides this as RAILWAY_URL
+const FLY_APP_NAME = process.env.FLY_APP_NAME;
+const URL = FLY_APP_NAME ? `https://${FLY_APP_NAME}.fly.dev` : null;
+
+// Set up webhook endpoint before starting the server
+if (URL) {
+    app.use(bot.webhookCallback(`/bot${process.env.TELEGRAM_BOT_TOKEN}`));
+} else {
+    log.warn('FLY_APP_NAME not defined, cannot set up webhook endpoint.');
+}
 
 app.listen(PORT, () => {
     log.info(`Server running on port ${PORT}`);
-    if (URL) { // Only set webhook if RAILWAY_URL is defined (in production)
+    if (URL) { // Only set webhook if FLY_APP_NAME is defined (in production)
         bot.setWebHook(`${URL}/bot${process.env.TELEGRAM_BOT_TOKEN}`);
         log.info(`Webhook set to ${URL}/bot${process.env.TELEGRAM_BOT_TOKEN}`);
     } else {
-        log.warn('RAILWAY_URL is not defined. Running without webhook.');
+        log.warn('FLY_APP_NAME is not defined. Running without webhook.');
     }
 });
 
