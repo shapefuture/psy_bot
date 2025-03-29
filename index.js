@@ -5,12 +5,43 @@ const config = require('./config');
 const { validateQuery } = require('./utils/validation');
 const { splitMessage } = require('./utils/message');
 const { isRateLimited } = require('./utils/rateLimit');
+const Sentry = require("@sentry/node");
+const { nodeProfilingIntegration } = require("@sentry/profiling-node");
 
 // Add logging
 const log = {
     info: (...args) => console.log(new Date().toISOString(), ...args),
     error: (...args) => console.error(new Date().toISOString(), ...args)
 };
+
+const app = express(); // Define Express app instance *before* Sentry init
+
+// Sentry: The request handler must be the first middleware on the app
+if (process.env.SENTRY_DSN) {
+    app.use(Sentry.Handlers.requestHandler());
+}
+
+// Initialize Sentry
+// Ensure SENTRY_DSN is set in your environment variables (Fly.io secrets)
+if (process.env.SENTRY_DSN) {
+    Sentry.init({
+        dsn: process.env.SENTRY_DSN,
+        integrations: [
+            // enable HTTP calls tracing
+            new Sentry.Integrations.Http({ tracing: true }),
+            // enable Express.js middleware tracing
+            new Sentry.Integrations.Express({ app }), // Pass the express app instance
+            nodeProfilingIntegration(),
+        ],
+        // Performance Monitoring
+        tracesSampleRate: 1.0, // Capture 100% of transactions
+        // Set sampling rate for profiling - this is relative to tracesSampleRate
+        profilesSampleRate: 1.0,
+    });
+    log.info("Sentry initialized.");
+} else {
+    log.warn("SENTRY_DSN not found. Sentry not initialized.");
+}
 
 // Validate environment variables
 if (!process.env.TELEGRAM_BOT_TOKEN) {
@@ -143,7 +174,7 @@ bot.on('text', async (ctx) => {
 });
 
 // Add health check endpoint
-const app = express();
+// const app = express(); // Moved up before Sentry init
 app.get('/health', (req, res) => {
     res.status(200).json({ 
         status: 'ok',
@@ -166,6 +197,11 @@ if (URL) {
     app.use(bot.webhookCallback(`/bot${process.env.TELEGRAM_BOT_TOKEN}`));
 } else {
     log.warn('FLY_APP_NAME not defined, cannot set up webhook endpoint.');
+}
+
+// Sentry: The error handler must be before any other error middleware and after all controllers
+if (process.env.SENTRY_DSN) {
+    app.use(Sentry.Handlers.errorHandler());
 }
 
 app.listen(PORT, () => {
