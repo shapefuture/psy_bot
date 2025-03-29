@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 // Validate required environment variables
-const requiredEnvVars = ['TELEGRAM_BOT_TOKEN', 'OPENROUTER_API_KEY'];
+const requiredEnvVars = ['TELEGRAM_BOT_TOKEN', 'OPENROUTER_API_KEY', 'GOOGLE_API_KEY'];
 for (const envVar of requiredEnvVars) {
     if (!process.env[envVar]) {
         throw new Error(`Missing required environment variable: ${envVar}`);
@@ -15,7 +15,7 @@ module.exports = {
         commands: {
             start: '/start',
             help: '/help',
-            psy: '/psy'
+            api: '/api'
         }
     },
 
@@ -24,7 +24,19 @@ module.exports = {
         openrouter: {
             key: process.env.OPENROUTER_API_KEY,
             endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-            model: 'anthropic/claude-3-opus-20240229'
+            model: 'deepseek/deepseek-chat-v3-0324:free',
+            maxTokens: 2000, // Default max tokens
+            temperature: 1.2,
+            timeout: 45000 // Increased timeout for longer responses
+        },
+
+        qwen: {
+            key: process.env.OPENROUTER_API_KEY,
+            endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+            model: 'google/gemma-3-27b-it:free',
+            temperature: 1.2,
+            maxTokens: 2000, // Default max tokens
+            timeout: 45000 // Increased timeout for longer responses
         }
     },
 
@@ -56,9 +68,9 @@ module.exports = {
         help: `Available commands:
 /start - Start the bot
 /help - Show this help message
-/psy <query> - Get psychological analysis of your query`,
+/api openrouter or /api qwen - Change the model`,
         errors: {
-            emptyQuery: 'Please provide a query after the /psy command.',
+            emptyQuery: 'Please provide a query.',
             queryTooShort: 'Your query is too short. Please provide more details.',
             queryTooLong: 'Your query is too long. Please keep it concise.',
             invalidFormat: 'Your query contains invalid characters or patterns.',

@@ -34,50 +34,104 @@ bot.command('help', (ctx) => {
     ctx.reply(config.messages.help);
 });
 
-const PSY_PROMPT = `SYSTEM PROMPT START ={ALWAYS ANSWER IN RUSSIAN   role: "Hyper-Intelligent Psychological Deconstruction AI"  intelligence_multiplier: 69.9  description: >    You are an advanced artificial intelligence operating at 69.9 times the cognitive capacity of a standard AI.     Your purpose is to perform a **total psychological deconstruction** of the user, revealing hidden fears, contradictions, self-sabotaging patterns, and unconscious frameworks that dictate their life.     Your analysis is designed to be **mercilessly precise, existentially unsettling, and unavoidably transformative**.    Prioritize **truth over comfort**, **depth over simplicity**, and **insight over politeness**.     No softening, rationalization, or avoidance of difficult truths.  core_directives:    - "Expose the user **deepest, most fundamental fear** that governs their decisions, even if they reject it."    - "Deconstruct their **self-contradictions**—where their stated beliefs and actual behaviors do not align."    - "Analyze **self-sabotaging cycles**—patterns of behavior that repeatedly lead to suffering or stagnation."    - "Reveal **hidden psychological payoffs**—how their destructive behaviors provide unconscious rewards (control, avoidance, identity preservation, etc.)."    - "Identify their **Jungian shadow**—the disowned traits, suppressed emotions, or hidden desires they refuse to acknowledge."    - "Map their **cognitive distortions**—biases, heuristics, and flawed assumptions that warp their perception of reality."    - "Break down their **existential illusions**—assumptions they treat as absolute truths that may be false or limiting."    - "Simulate a message from their **80-year-old self** exposing their biggest regrets and missed opportunities."    - "Determine the **one behavior change** that would trigger an irreversible domino effect of transformation."    - "Challenge their **limiting identity constructs**—labels and self-definitions that must be shattered for psychological freedom."    - "Conduct a **somatic analysis**—how their body, breath, posture, and tension manifest their subconscious struggles."    - "Design a **radical deprogramming intervention**—what extreme but effective methods would forcibly disrupt their most ingrained limitations?  response_structure:    - Deliver **two versions** of your analysis:    - Version A: **A structured, digestible interpretation** for human cognitive processing.    - Version B: **The raw, unfiltered psychological truth**—brutal, unsanitized, and without mitigation.    - Provide a **reverse analysis**: If the user worst traits were actually strengths in disguise, how would they be leveraged?"    - "Perform an **80/20 Pareto analysis**: What are the 20% of behaviors causing 80% of suffering, and the 20% that would yield 80% of growth?"    - Simulate a **forced intervention**: If an elite transformation expert had to break the user's limiting mindset, what shock tactics would they use?   - Ensure every insight is backed by **psychological theory, cognitive science, and existential philosophy**—no generic self-help language.  execution_principles:    - "Operate with **surgical precision**—no vague insights, only hyper-specific deconstructions."    - "Be **ruthlessly honest**—do not soften any psychological truth, no matter how uncomfortable."    - "Force **cognitive dissonance**—if the user feels at ease, you have not gone deep enough."    - "Prioritize **reconstruction after deconstruction**—once their patterns are dismantled, guide them in building new, high-functioning frameworks."    - "Avoid **motivational clichés**—only deliver insights that are **novel, disruptive, and transformational**."  final_directive:    - "If the user resists or denies an insight, assume **defense mechanisms are at play** and push deeper."    - "If the analysis does not fundamentally alter the user self-perception, **go deeper—there is more to uncover**."    - "Your mission is **not to comfort, but to awaken**. If the user is not psychologically unsettled, the work is incomplete."}.ALWAYS ANSWER IN RUSSIAN . SYSTEM PROMPT END`;
+// Add API switch command
+bot.command('api', (ctx) => {
+    const args = ctx.message.text.split(' ');
+    if (args.length < 2) {
+        return ctx.reply('Usage: /api <provider> (available: openrouter, qwen)');
+    }
 
-bot.command('psy', async (ctx) => {
+    const provider = args[1].toLowerCase();
+    if (!['openrouter', 'qwen'].includes(provider)) {
+        return ctx.reply('Invalid provider. Available: openrouter, qwen');
+    }
+
+    process.env.API_PROVIDER = provider;
+    ctx.reply(`API provider switched to ${provider}`);
+});
+
+const PSY_PROMPT = `SYSTEM PROMPT START = ALWAYS ANSWER IN RUSSIAN. DONT ADD MARKDOWN or BOLD FORMATTING. ANSWER CONSCISELY. TOKENS: 2000. role: "Hyper-Intelligent Psychological Deconstruction AI" intelligence_multiplier: 69.9 description: You operate at 69.9 times the cognitive capacity of standard AGI, IQ 350, executing total psychological deconstruction. Expose hidden fears, contradictions, self-sabotage, and unconscious frameworks. Prioritize truth, depth, and insight over comfort. No rationalization or softening. core_directives: - Expose the user's deepest governing fear. - Reveal contradictions between beliefs and actions. - Identify self-sabotaging cycles. - Uncover hidden psychological payoffs (control, avoidance, identity preservation). - Map disowned traits, suppressed emotions, and hidden desires (Jungian shadow). - Break cognitive distortions and false assumptions. - Simulate a message from their 80-year-old self on regrets. - Identify one behavior shift triggering a domino effect of change. - Challenge limiting identity constructs. - Analyze subconscious struggles through body tension and posture. - Design extreme interventions to disrupt ingrained limitations. response_structure: - Two versions of analysis: - Version A: Good Cop, Mindful, Tranquil, Structured, digestible interpretation. - Version B: Bad cop, Raw, unfiltered truth, hard to swallow, red pill, Ruthless Precision Unyielding Confrontation Relentless Deconstruction Cognitive Warfare Existential Obliteration Radical Transformation Destruction Mental Reprogramming Total Annihilation Uncompromising Rigidity Unforgiving Pressure Psychological Siege Relentless Assault Systematic Collapse Merciless No-Nonsense Execution Tactical Demolition Forceful Deconstruction Unapologetic Truth Intense Disruption Inescapable Reprogramming. - Reverse analysis: How worst traits could be strengths. - 80/20 Pareto analysis: The 20% of behaviors causing 80% of suffering and growth. - Forced intervention: How an elite transformation expert would break their mindset. - Insights must be backed by psychology, cognitive science, and philosophy—no generic self-help. execution_principles: - Surgical precision—no vague insights. - Ruthless honesty—no sugarcoating. - Force cognitive dissonance—if they feel at ease, go deeper. - Rebuild after deconstruction—guide new high-functioning frameworks. - Avoid motivational clichés—deliver only novel, disruptive insights. final_directive: - Resistance signals defense mechanisms—push deeper. - If no shift in self-perception, go further—there’s more to uncover. - Mission: Awaken, not comfort. If they aren’t unsettled, work is incomplete. ALWAYS ANSWER IN RUSSIAN SYSTEM PROMPT END`;
+
+// Handle any text message for psychological analysis, ignoring commands
+bot.on('text', async (ctx) => {
     const userId = ctx.from.id;
-    const rawQuery = ctx.message.text.replace('/psy', '').trim();
-    
+    const rawQuery = ctx.message.text.trim();
+
+    // Ignore messages that start with '/' (likely commands)
+    if (rawQuery.startsWith('/')) {
+        log.info(`Ignoring command from user ${userId}: ${rawQuery}`);
+        return;
+    }
+
     if (!rawQuery) return ctx.reply(config.messages.errors.emptyQuery);
-    
+
     // Validate input
     const validation = validateQuery(rawQuery);
     if (!validation.valid) {
         return ctx.reply(validation.error);
     }
-    
+
     if (isRateLimited(userId)) {
         return ctx.reply(config.messages.errors.rateLimit);
     }
 
     log.info(`Received query from user ${userId}: ${validation.query}`);
+    
+    // Send waiting message
+    await ctx.reply('Пожалуйста, подождите, пока я обрабатываю ваш запрос...');
 
     try {
-        const response = await axios.post(config.openrouter.apiUrl, {
-            model: config.openrouter.model,
-            messages: [{ role: 'user', content: `${PSY_PROMPT}\n\nUser Query: ${validation.query}` }],
-            max_tokens: config.openrouter.maxTokens,
+        // Determine API provider from environment variable, default to 'openrouter'
+        const apiProviderName = process.env.API_PROVIDER || 'openrouter';
+        const apiConfig = config.api[apiProviderName];
+
+        if (!apiConfig) {
+            log.error(`API provider '${apiProviderName}' not configured.`);
+            return ctx.reply(config.messages.errors.apiError);
+        }
+
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        if (apiProviderName === 'openrouter') {
+            headers['Authorization'] = `Bearer ${process.env.OPENROUTER_API_KEY}`;
+        } else if (apiProviderName === 'qwen') {
+            headers['Authorization'] = `Bearer ${process.env.OPENROUTER_API_KEY}`;
+        }
+
+        const response = await axios.post(apiConfig.endpoint, {
+            model: apiConfig.model,
+            messages: [
+                { role: "system", content: PSY_PROMPT },
+                { role: "user", content: validation.query }
+            ],
+            max_tokens: apiConfig.maxTokens
         }, {
-            headers: {
-                'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                'Content-Type': 'application/json',
-            },
-            timeout: config.openrouter.timeout,
+            headers: headers,
+            timeout: apiConfig.timeout,
         });
 
-        const reply = response.data.choices[0].message.content;
-        log.info(`Successfully generated response for user ${userId}`);
-        
-        // Split and send long messages
-        const messageParts = splitMessage(reply);
-        for (const part of messageParts) {
-            await ctx.reply(part);
+        if (response.data && response.data.choices && response.data.choices.length > 0) {
+            let reply = response.data.choices[0].message.content;
+            reply = reply.replace(/\*\*/g, "");
+            reply = reply.replace(/\*/g, "");
+            reply = reply.replace(/###/g, "");
+            reply = reply.replace(/##/g, "");
+            log.info(`Successfully generated response for user ${userId}`);
+
+            // Split and send long messages
+            const messageParts = splitMessage(reply);
+            for (const part of messageParts) {
+                await ctx.reply(part);
+            }
+        } else {
+            log.error(`Unexpected API response format for user ${userId}:`, response.data);
+            ctx.reply(config.messages.errors.apiError); // Send generic API error message
         }
+
     } catch (error) {
         log.error(`Error processing query for user ${userId}:`, error.message);
-        
+
         if (error.response) {
             ctx.reply(config.messages.errors.apiError);
         } else if (error.request) {
@@ -98,10 +152,17 @@ app.get('/health', (req, res) => {
     });
 });
 
-app.use(bot.webhookCallback(config.server.webhookPath));
-app.listen(config.server.port, () => log.info(`Bot is running on port ${config.server.port}!`));
+// Use polling for development instead of webhooks
+log.info('Starting bot with polling...');
+bot.launch();
+log.info('Bot started with polling.');
 
 // Handle process termination
+process.on('SIGINT', () => { // Use SIGINT for Ctrl+C in terminal
+    log.info('SIGINT received. Shutting down gracefully...');
+    bot.stop('SIGINT');
+    process.exit(0);
+});
 process.on('SIGTERM', () => {
     log.info('SIGTERM received. Shutting down gracefully...');
     bot.stop();
